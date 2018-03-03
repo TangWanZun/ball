@@ -125,6 +125,9 @@
 	<canvas style="border: 1px solid;" width="300" height="500"></canvas>
 </body>
 <script>
+	var canvas = document.querySelector("canvas");
+	canvas.width = document.body.offsetWidth-4;	
+	canvas.height = document.body.offsetHeight-6;
 	var ctx = canvas.getContext('2d');
 	var raf;
 	//随机动画
