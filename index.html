@@ -42,6 +42,29 @@
 	<canvas style="border: 1px solid;" width="300" height="500"></canvas>
 </body>
 <script>
+	var overscoll = function (el){
+	el.addEventListener('touchstart',function(){
+	var top = el.scrollTop;
+	totalScroll = el.scrollHeight;
+	currentScroll = top + el.offsetHeight;
+	if(top === 0){
+	el.scrollTop = 1;
+	}else if(currentScroll === totalScroll){
+	el.scrollTop = top - 1 ;
+	}
+	});
+	el.addEventListener('touchmove',function(evt){
+	if(el.offsetHeight < el.scrollHeight){
+	evt._isScroller = true;
+	}
+	});
+	}
+	overscoll(document.querySelector('body'));
+	document.body.addEventListener('touchmove',function(evt){
+	if(!evt._isScroller){
+	evt.preventDefault();
+	}
+	});
 	var canvas = document.querySelector("canvas");
 	canvas.height = document.body.offsetHeight-6;
 	canvas.width = document.body.offsetWidth-4;
