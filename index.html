@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+	<title>Document</title>
+</head>
+<style>
+	*{
+		padding:0px;
+		border: 0px;
+		margin: 0px;
+		box-sizing: border-box;
+	}
+	body{
+		width: 100vw;
+		height: 100vh;
+	}
+	#event{
+		position: absolute;
+	    top: 3px;
+	    font-size: 20px;
+	    width: 100vw;
+	    text-align: right;
+	    padding-right: 10px;
+	}
+	.reset{
+		position: absolute;
+		width: 30vw;
+		height: 10vw;
+		background-color: rgba(0,0,0,0.5);
+		color: white;
+		text-align: center;
+		line-height: 10vw;
+		border-radius: 2vw;
+	}
+</style>
+<body>
+	<div id="event">分数:0</div>
+	<div class="reset" onclick="reset()">重置游戏</div>
+	<canvas style="border: 1px solid;" width="300" height="500"></canvas>
+</body>
+<script>
+	var canvas = document.querySelector("canvas");
+	canvas.height = document.body.offsetHeight-6;
+	canvas.width = document.body.offsetWidth-4;
+	var ctx = canvas.getContext('2d');
+	var raf;
+	//随机动画
+	function GetRandomNum(Min,Max) { 
+		var Range = Max - Min; 
+		var Rand = Math.random();
+		return  (Min + Math.round(Rand * Range));
+	}
+	
+	//每帧运动
+	function draw(){
+		//清除画布
+		ctx.fillStyle = "rgb(255,255,255)";
+		ctx.fillRect(0,0,canvas.width,canvas.height);
+		//运行所有精灵组中的精灵行为
+		spititList.forEach(function(val){
+			val.action();
+		});
+		window.raf=window.requestAnimationFrame(draw);
+	}
+	function stop(){
+		window.cancelAnimationFrame(window.raf);
+	}
+	//游戏开始
+	function play(){
+		//初始化所有精灵组中的精灵
+		spititList.forEach(function(val){
+			val.init();
+		});
+		draw();		
+	}
+	//游戏结束
+	function gameover(){
+		b1.state = false;
+		setTimeout(function(){
+			stop();
+			alert("游戏结束");
+		},100);
+	}
+	//游戏复位键
+	function reset(){
+		//游戏停止
+		stop();
+		//清空精灵族
+		spititList.remoteAll();
+		//清除画布
+		ctx.fillStyle = "rgb(255,255,255)";
+		ctx.fillRect(0,0,canvas.width,canvas.height);
+		//重新将主角小球加入精灵链表中
+		spititList.push(b1);
+		//重置主角小球
+		b1.r = 10;
+		b1.x = canvas.width/2;
+		b1.y = canvas.height/2;
+		b1.state = true;
+		//游戏开始
+		play()	
+	}
+	var List = function(){
+		this.herd = {};
+		this.foot = {};
+		this.herd.next = this.foot;
+		this.foot.last = this.herd;
+		//添加新元素方式
+		this.push = function(obj){
+			//更改对象与前元素的关系
+			this.foot.last.next = obj;
+			obj.last = this.foot.last;
+			//更改对象与后元素的关系
+			obj.next = this.foot;
+			this.foot.last = obj;
+			//为元素添加一个删除自身的方法
+			obj.remove = function(){
+				obj.last.next = obj.next;
+				obj.next.last = obj.last;
+			}
+		}
+		//遍历方式
+		this.forEach = function(fun){
+			var obj = this.herd.next;
+			while(obj.next!=null){
+				fun(obj);
+				obj = obj.next;
+			}
+		}
+		//清空数据链表
+		this.remoteAll = function(){
+			this.herd.next = this.foot;
+			this.foot.last = this.herd;
+		}
+	}
+	//需要加入舞台的精灵组
+	var spititList = new List();
+	var myevent = document.getElementById("event");
+	//小球对象
+	var Ball = function(Pro){
+		//小球的坐标
+		this.x = Pro.x || 0;
+		this.y = Pro.y || 0;
+		//小球的半径
+		this.r = Pro.r||0;
+		//颜色
+		this.color = Pro.color || "rgb(255,255,255)";
+		//每次动画重绘进行的方法
+		this.onUpdata = function(){}
+		//创建一个小球
+		this.init = function(){
+			ctx.beginPath();
+			ctx.arc(this.x,this.y,this.r,0,Math.PI*2,true);
+			ctx.closePath();
+			ctx.fillStyle = this.color;
+			ctx.fill();
+		}
+		this.action = function(){
+			this.onUpdata();
+			this.init();
+		}
+
+	}
+	//猪脚小球
+	var MBall = function(Pro){
+		Ball.call(this,Pro);
+		this.NX = 0;
+		this.NY = 0;
+		this.znum = 0;
+		var self = this;
+		this.state = true;
+		this.onUpdata = function(){
+			if(this.state){
+				//每15帧创建一个敌小球
+				if(this.znum==17){
+					createDBall(this.r-5,this.r+15);
+					this.znum = 0;
+				}
+				//当主角小球触碰到边界，游戏结束
+				if (this.y + this.r  > canvas.height || this.y - this.r < 0) 
+				{ gameover(); }
+				if (this.x + this.r > canvas.width || this.x - this.r< 0)
+				{ gameover(); }
+				this.znum++;
+			}
+		}
+		
+	}
+	//敌小球
+	var DBall = function(Pro){
+		Ball.call(this,Pro);
+		this.vx = Pro.vx ||0;
+		this.vy = Pro.vy ||0;
+		this.nx = Pro.nx || null;
+		this.ny = Pro.ny || null;
+		this.ntime = Pro.ntime || 1;
+		this.znum = 1;
+		if(this.nx!=null && this.ny!=null){
+			this.vx = (this.nx - this.x)/this.ntime;
+			this.vy = (this.ny - this.y)/this.ntime;
+		}
+		this.index = Pro.index;
+		this.onUpdata = function(){
+			if(b1.state){
+				//进行移动
+				this.x = this.x + this.vx;
+				this.y = this.y + this.vy;
+				//每2帧进行一次碰撞检测
+				if(this.znum==2){
+					//超出游戏界面销毁敌小球
+					if (this.y - this.r + this.vy > canvas.height || this.y + this.r + this.vy< 0) 
+					{ this.remove(); }
+					if (this.x - this.r + this.vx> canvas.width || this.x + this.r + this.vx< 0)
+					{ this.remove(); }
+					//与主角小球进行碰撞检测
+					if(Math.sqrt(Math.pow(this.x - b1.x, 2) + Math.pow(this.y - b1.y, 2)) <= this.r + b1.r){
+						//敌小球如果大于等于主角小球，游戏结束
+						if(this.r>=b1.r){
+							gameover();
+						}else
+						//主角小球大于敌小球，则主角小球吃掉敌小球,并且增加半径,更新分数
+						{
+							this.remove();
+							b1.r += 1;
+							myevent.innerHTML = "分数:"+(b1.r-10);
+						}
+					}
+					this.znum = 0;
+				}
+				this.znum++;
+			}
+		}
+	}
+	//创建主角小球
+	var b1 = new MBall({
+		x:canvas.width/2,
+		y:canvas.height/2,
+		r:10,
+		color:"rgb(76,87,100)",
+	});
+	//将b1加入精灵族
+	spititList.push(b1);
+	//随机创建敌小球
+	function createDBall(min,max){
+		var randIndex = GetRandomNum(1,4);
+		var time = GetRandomNum(400,600);
+		var colorArr = ["rgba(228,95,95,0.9)","rgba(199,244,100,0.9)","rgba(69,183,175,0.9)","rgba(166,8,180,0.9)"];
+		var colorRend = GetRandomNum(0,3);
+		//敌小球半径
+		var nR = GetRandomNum(min,max);
+		switch(randIndex){
+			case 1:{
+				spititList.push(new DBall({
+					x:-nR,
+					y:GetRandomNum(1,canvas.height),
+					nx:canvas.width+nR,
+					ny:GetRandomNum(1,canvas.height),
+					ntime:time,
+					r:nR,
+					color:colorArr[colorRend]
+				}));
+				break;
+			}
+			case 2:{
+				spititList.push(new DBall({
+					x:canvas.width+nR,
+					y:GetRandomNum(1,canvas.height),
+					nx:-nR,
+					ny:GetRandomNum(1,canvas.height),
+					ntime:time,
+					r:nR,
+					color:colorArr[colorRend]
+				}));
+				break;
+			}
+			case 3:{
+				spititList.push(new DBall({
+					x:GetRandomNum(1,canvas.width),
+					y:-nR,
+					nx:GetRandomNum(1,canvas.width),
+					ny:canvas.height+nR,
+					ntime:time,
+					r:nR,
+					color:colorArr[colorRend]
+				}));
+				break;
+			}
+			case 4:{
+				spititList.push(new DBall({
+					x:GetRandomNum(1,canvas.width),
+					y:canvas.height,
+					nx:GetRandomNum(1,canvas.width),
+					ny:-nR,
+					ntime:time,
+					r:nR,
+					color:colorArr[colorRend]
+				}));
+				break;
+			}
+		}
+	}
+	//画板事件
+	canvas.ontouchstart = function(e){
+		b1.NX = e.touches[0].pageX - b1.x;
+		b1.NY = e.touches[0].pageY - b1.y;
+	}
+	canvas.ontouchmove = function(e){
+		b1.x = e.touches[0].pageX - b1.NX;
+		b1.y = e.touches[0].pageY - b1.NY;
+	}
+	canvas,ontouchend = function(){
+		b1.NX = 0;
+		b1.NY = 0;
+	}
+	
+	play();
+	
+</script>
+</html>
