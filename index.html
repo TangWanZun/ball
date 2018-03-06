@@ -63,7 +63,7 @@
     <!-- Windows 8 磁贴图标 -->
  
     <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml"/>
-
+	<link rel="stylesheet" type="text/css" href="http://farm.yijianongchang.shop/Public/home/game/css/mount_serve_box.css"/>
 	<title>Document</title>
 </head>
 <style>
@@ -95,17 +95,166 @@
 		line-height: 10vw;
 		border-radius: 2vw;
 	}
+	/*//游戏开始界面*/
+	.game_start{
+		display: block;
+		background-color: rgb(234,234,234);
+		position: fixed;
+		width: 100vw;
+		height: 100vh;
+		z-index: 99;
+	}
+	@keyframes swell{
+		0%{transform:scale(1);}
+		50%{transform: scale(1.2);}
+		100%{transform: scale(1);}
+	}
+	.game_start>img{
+		display: block;
+		position: absolute;
+		width: 70vw;
+		margin-left: -35vw;
+		left: 50%;		
+		top: 70%;
+	}
+	.game_start:after{
+		content: "";
+		display: block;
+		position: absolute;
+		animation:swell 3s ;
+		animation-iteration-count:infinite;
+		width: 35vw;
+		height: 35vw;
+		border-radius: 100%;
+		top: 30%;
+		left: 25%;
+		background-color: rgb(78,205,196);
+	}
+	.game_start:before{
+		content: "";
+		display: block;
+		position: absolute;
+		animation:swell 3s ;
+		animation-iteration-count:infinite;
+		width: 25vw;
+		height: 25vw;
+		border-radius: 100%;
+		top: 35%;
+		left: 55%;
+		background-color: rgb(178,218,89);
+		z-index: 9;
+	}
+	.game_over{
+		display: none;
+		background-color: rgba(0,0,0,0.4);
+		width: 100vw;
+		height: 100vh;
+		position: fixed;
+		top: 0px;
+		left: 0px;
+		z-index: 999;
+	}
+	.game_over>img{
+		display: block;
+		width: 90vw;
+		margin: 0 auto;
+	}
+	.game_over_header{
+		font-size: 10vw;
+		color: white;
+		font-family: "幼圆";
+		width: 100vw;
+		text-align: center;
+		height: 30vh;
+		line-height: 40vh;
+	}
+	.congrats{
+		font-size: 10vw;
+		color: white;
+		font-family: "幼圆";
+		text-align: center;
+		padding-top: 5vh;
+	}
+	#grade{
+		font-size: 8vw;
+		color: white;
+		font-family: "幼圆";
+		text-align: center;
+		padding-top: 3vh;
+		padding-bottom: 3vh;
+	}
+	.buttons{
+		width: 100vw;
+		display: flex;
+		flex-direction:row;
+		flex-wrap: nowrap;
+		justify-content:space-around;
+		padding-top: 3vh;
+	}
+	button{
+		width: 40vw;
+		display:block;
+		height: 12vw;
+		line-height: 12vw;
+		font-size: 6vw;
+		font-family: "幼圆";
+		text-align: center;
+		color: rgb(45, 45, 45);
+		border-radius: 3vw;
+	}
+	.fenxiang{
+		width: 100vw;
+		height: 100vh;
+		background-color: black;
+		position: fixed;
+		z-index: 99999;
+		top: 0px;
+		left: 0px;
+		display: none;
+	}
 </style>
 <body>
+	<div class="game_start">
+		<img src="1.jpg" alt="" />
+	</div>
 	<div id="event">分数:0</div>
-	<div class="reset" onclick="reset()">重置游戏0.3</div>
 	<canvas style="border: 1px solid;" width="300" height="500"></canvas>
+	<div class="game_over">
+		<div class="game_over_header">我的成绩</div>
+		<img  src="1.png" alt="" />
+		<h2 class="congrats">
+			恭喜你!
+		</h2>
+		<div id="grade">
+			获得分数: 0
+		</div>
+		<img  src="1.png" alt="" />
+		<div class="buttons">
+			<button>不服再来</button>
+			<button>分享给好友</button>
+		</div>
+		<div class="fenxiang">
+			<img width="100%" src="2.jpg"/>
+		</div>
+	</div>
 </body>
+<script src="http://farm.yijianongchang.shop/Public/home/game/js/mount_serve_box.js"></script>
 <script>
-//	document.querySelector("body").addEventListener("touchstart",function(e){
-//		e.preventDefault();
-//	});
-	document.addEventListener('touchmove', function(e){e.preventDefault()}, false);
+	var fenxiang = document.querySelector(".fenxiang");
+	fenxiang.ontouchstart = function(){
+		this.style.display = "none";
+	}
+	//为按钮添加事件
+	var buttonArr = document.querySelectorAll("button");
+	buttonArr[0].ontouchstart = reset;
+	buttonArr[1].ontouchstart = function(){
+		fenxiang.style.display = "block";
+	};
+	//关闭开始页面
+	document.querySelector(".game_start").ontouchstart = function(){
+		this.style.display = "none";
+		play();
+	}
 	var canvas = document.querySelector("canvas");
 	canvas.width = document.body.offsetWidth-4;	
 	canvas.height = document.body.offsetHeight-6;
@@ -117,7 +266,8 @@
 		var Rand = Math.random();
 		return  (Min + Math.round(Rand * Range));
 	}
-	
+	//分数
+	var grade = 0;
 	//每帧运动
 	function draw(){
 		//清除画布
@@ -143,9 +293,10 @@
 	//游戏结束
 	function gameover(){
 		b1.state = false;
+		document.getElementById("grade").innerHTML = "获得分数: "+grade;
 		setTimeout(function(){
 			stop();
-			alert("游戏结束");
+			document.querySelector('.game_over').style.display = "block";
 		},100);
 	}
 	//游戏复位键
@@ -164,6 +315,11 @@
 		b1.x = canvas.width/2;
 		b1.y = canvas.height/2;
 		b1.state = true;
+		//清空分数
+		grade = 0;
+		myevent.innerHTML = "分数:0";
+		//关闭结束画面
+		document.querySelector('.game_over').style.display = "none";
 		//游戏开始
 		play()	
 	}
@@ -286,7 +442,8 @@
 					{
 						this.remove();
 						b1.r += 1;
-						myevent.innerHTML = "分数:"+(b1.r-10);
+						grade += 1;
+						myevent.innerHTML = "分数:"+grade;
 					}
 				}
 			}
@@ -377,7 +534,7 @@
 		event.preventDefault();  
 	}
 	
-	play();
+//	play();
 	
 </script>
 </html>
