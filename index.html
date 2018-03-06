@@ -98,7 +98,7 @@
 </style>
 <body>
 	<div id="event">分数:0</div>
-	<div class="reset" onclick="reset()">重置游戏0.2</div>
+	<div class="reset" onclick="reset()">重置游戏0.3</div>
 	<canvas style="border: 1px solid;" width="300" height="500"></canvas>
 </body>
 <script>
@@ -364,14 +364,17 @@
 	canvas.ontouchstart = function(e){
 		b1.NX = e.touches[0].pageX - b1.x;
 		b1.NY = e.touches[0].pageY - b1.y;
+		event.preventDefault();  
 	}
 	canvas.ontouchmove = function(e){
 		b1.x = e.touches[0].pageX - b1.NX;
 		b1.y = e.touches[0].pageY - b1.NY;
+		event.preventDefault();  
 	}
 	canvas,ontouchend = function(){
 		b1.NX = 0;
 		b1.NY = 0;
+		event.preventDefault();  
 	}
 	
 	play();
