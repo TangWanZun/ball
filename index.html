@@ -98,13 +98,14 @@
 </style>
 <body>
 	<div id="event">分数:0</div>
-	<div class="reset" onclick="reset()">重置游戏</div>
+	<div class="reset" onclick="reset()">重置游戏0.2</div>
 	<canvas style="border: 1px solid;" width="300" height="500"></canvas>
 </body>
 <script>
-	document.body.ontouchmove = function(e){
-		e.preventDefault();
-	}
+//	document.querySelector("body").addEventListener("touchstart",function(e){
+//		e.preventDefault();
+//	});
+	document.addEventListener('touchmove', function(e){e.preventDefault()}, false);
 	var canvas = document.querySelector("canvas");
 	canvas.width = document.body.offsetWidth-4;	
 	canvas.height = document.body.offsetHeight-6;
