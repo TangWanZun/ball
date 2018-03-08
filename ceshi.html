@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=3, minimum-scale=1, user-scalable=no">
+	</head>
+	<style>
+		canvas{
+			border:1px solid;
+		}
+	</style>
+	<body>
+	</body>
+	<script src="Rabbit.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		new GRbit.Stage({
+			width:350,
+			height:600
+		});
+		var b1 = new GRbit.ImgSpitit({
+			x:0,
+			y:0,
+			img:"liwu.png",
+			width:100,
+			height:100,
+		})
+		GRbit.onDrag(b1);
+		GRbit.spititList.push(b1);
+		GRbit.spititList.push(new GRbit.Spitit({
+			x:150,
+			y:150,
+			width:100,
+			height:100,
+			type:"RECK"
+		}));
+		var mainTime = new GRbit.MainTime();
+		mainTime.start();
+//		//画板事件
+//		canvas.ontouchstart = function(e){
+//			b1.NX = e.touches[0].pageX - b1.x;
+//			b1.NY = e.touches[0].pageY - b1.y;
+//			event.preventDefault();  
+//		}
+//		canvas.ontouchmove = function(e){
+//			b1.x = e.touches[0].pageX - b1.NX;
+//			b1.y = e.touches[0].pageY - b1.NY;
+//			event.preventDefault();  
+//		}
+//		canvas,ontouchend = function(){
+//			b1.NX = 0;
+//			b1.NY = 0;
+//			event.preventDefault();  
+//		}
+	</script>
+</html>
