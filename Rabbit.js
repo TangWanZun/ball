@@ -230,7 +230,7 @@ function GRabbit(){
 			//判断每个像素点，当像素点为不透明的时候，此处有碰撞体，当像素点透明度小于250时，为不碰撞体
 			for(var i = 0; i < imgSpitit.width * imgSpitit.height; i ++){
 			    var dot = i * 4;
-			    if(stageObjData[dot+3] > 250){
+			    if(stageObjData[dot] > 0||stageObjData[dot+1] > 0||stageObjData[dot+2] > 0){
 			        stageObj.plane[i] = 1;
 			    }else{
 			        stageObj.plane[i] = 0;
@@ -248,11 +248,12 @@ function GRabbit(){
 		}
 		this.canvas2 = document.getElementById("canvas2");
 		this.stt = this.canvas2.getContext("2d");
-		this.imgData=this.stt.getImageData(0,0,self.canvas.width,self.canvas.height);
-		
+		this.imgData_data = this.stt.getImageData(0,0,400,700);
 		//往街机舞台中进行绘制所有对象
 		this.action = function(){
 			var that = this;
+			this.init();
+			//将所有成员的像素，写入数组中
 			this.crachArr.forEach(function(val){
 				var i = 0,
 			        j = 0,
@@ -262,38 +263,33 @@ function GRabbit(){
 			        n = 0;
 			    for(j = 0 ;j<val.imgSpitit.height;j++){
 			    	for(i=0;i<val.imgSpitit.width;i++){
-			    		n = (val.imgSpitit.y-val.imgSpitit.height/2)+j*self.canvas.width+(val.imgSpitit.x-val.imgSpitit.width/2)
+			    		//像素表中的位置是不是为1
 			    		if(val.plane[j*val.imgSpitit.width+i]==1){
-			    			that.stage[n] = 1;
-			    			that.imgData.data[n]=255;
-			                that.imgData.data[n+1]=255;
-			                that.imgData.data[n+2]=255;
-			                that.imgData.data[n+3]=255;
+			    			that.stage[(j+val.imgSpitit.y-val.imgSpitit.height/2)*self.canvas.width+(i+val.imgSpitit.x-val.imgSpitit.width/2)] = 1;
 			    		}
 			    	}
 			    }
-			    that.stt.putImageData(that.imgData,0,0);
-//				for(i; i < val.imgSpitit.width; i ++){
-//			        for(j; j < val.imgSpitit.height; j ++){
-//			            m = parseInt(j * val.imgSpitit .width + i);
-////			            console.log(m);
-//			            if(val.plane[m] > 0){
-//			                n = parseInt((j + (val.imgSpitit.y - val.imgSpitit.height/2)) * self.canvas.width + (i + (val.imgSpitit.x - val.imgSpitit.width/2)));
-////			                console.log(n);
-//			              
-//			            }
-//			        }
-//			    }
-//				val.plane.forEach(function(val2,index){
-//					if(val2 == 1){
-//		                that.imgData.data[index]=255;
-//		                that.imgData.data[index+1]=255;
-//		                that.imgData.data[index+2]=255;
-//		                that.imgData.data[index+3]=255;
-//					}
-//				});
-//				that.stt.putImageData(that.imgData,0,0);
 			});
+//			var imgData_data = this.stt.createImageData(self.canvas.width,self.canvas.height);
+			var i = 0,
+		        j = 0;
+		    for(i = 0,j = 0;i<self.canvas.width * self.canvas.height;i++,j+=4){
+		    	switch( this.stage[i]){
+		            case 1:
+		                this.imgData_data.data[j] = 255;
+		                this.imgData_data.data[j + 1] = 0;
+		                this.imgData_data.data[j + 2] = 0;
+		                this.imgData_data.data[j + 3] = 255;
+		                break;
+		            default:
+		                this.imgData_data.data[j] = 0;
+		                this.imgData_data.data[j + 1] = 0;
+		                this.imgData_data.data[j + 2] = 0;
+		                this.imgData_data.data[j + 3] = 255;
+		                break;
+	        	}
+		    }
+			this.stt.putImageData(this.imgData_data,0,0);
 		}
 		//启动街机舞台
 		this.start = function(){
