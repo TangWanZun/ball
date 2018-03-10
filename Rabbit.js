@@ -1,4 +1,6 @@
+//https://my.oschina.net/u/1253039/blog/193752
 function GRabbit(){
+	this.$roll = 1;
 	//画笔对象
 	this.ctx = null;
 	//运行帧的返回值,通过他可以暂停运行
@@ -10,8 +12,11 @@ function GRabbit(){
 	this.Stage = function(Pro){
 		this.width = Pro.width || 0;
 		this.height = Pro.height || 0;
+		this.scaleX = Pro.scaleX || 1;
+		this.scaleY = Pro.scaleY || 1;
 		self.canvas.width = this.width;
 		self.canvas.height = this.height;
+		self.canvas.style.transform = "scale("+this.scaleX+","+this.scaleY+")";
 		//拿取画笔
 		self.ctx = self.canvas.getContext('2d');
 		//添加到页面
@@ -22,10 +27,14 @@ function GRabbit(){
 	var List = function(){
 		this.herd = {};
 		this.foot = {};
+		this.length = 0;
 		this.herd.next = this.foot;
 		this.foot.last = this.herd;
 		//添加新元素方式
 		this.push = function(obj){
+			//记录链表长度
+			this.length++;
+			var $list = this; 
 			//更改对象与前元素的关系
 			this.foot.last.next = obj;
 			obj.last = this.foot.last;
@@ -34,6 +43,8 @@ function GRabbit(){
 			this.foot.last = obj;
 			//为元素添加一个删除自身的方法
 			obj.remove = function(){
+				//记录链表长度
+				$list.length--;
 				obj.last.next = obj.next;
 				obj.next.last = obj.last;
 			}
@@ -88,23 +99,6 @@ function GRabbit(){
 		obj.eventShow = fun;
 		self[eventType+"List"].push(obj);
 	};
-	//注册一个组件自定义的事件，拖动事件
-	this.onDrag = function(spitit){
-		spitit.$NX = 0;
-		spitit.$NY = 0;
-		self.addEventListener("touchstart",function(e){
-			spitit.$NX = e.touches[0].pageX - spitit.x;
-			spitit.$NY = e.touches[0].pageY - spitit.y;
-		});
-		self.addEventListener("touchmove",function(e){
-			spitit.x = e.touches[0].pageX - spitit.$NX;
-			spitit.y = e.touches[0].pageY - spitit.$NY;
-		});
-		self.addEventListener("touchend",function(e){
-			spitit.$NX = 0;
-			spitit.$NY = 0;
-		});
-	}
 	//事件管理机制
 	self.canvas.ontouchstart = function(e){
 		self.touchstartList.forEach(function(val){
@@ -155,7 +149,7 @@ function GRabbit(){
 			}
 		}
 		//每次动画重绘进行的方法
-		this.onUpdata = function(){}
+		this.onUpdata = Pro.onUpdata || function(){}
 		//默认精灵活动
 		this.action = function(){
 			this.onUpdata();
@@ -168,20 +162,18 @@ function GRabbit(){
 		this.y = Pro.y || 0;
 		this.width = Pro.width || 0;
 		this.height = Pro.height || 0;
-//		this.px = Pro.px || undefined;
-//		this.py = Pro.py || undefined;
-//		this.pwidth = Pro.pwidth || undefined;
-//		this.pheight = Pro.pheight || undefined;
-		this.img = Pro.img||null;
-		this.imgObj = new Image();
-		this.imgObj.src = this.img;
+		this.px = Pro.px || 0;
+		this.py = Pro.py || 0;
+		this.pwidth = Pro.pwidth || undefined;
+		this.pheight = Pro.pheight || undefined;
+		this.imgObj = Pro.imgObj||(function(){console.error("图片未加载完成")})();
 		//绘制精灵
 		this.init = function(){
-			self.ctx.drawImage(this.imgObj,this.x-this.width/2,this.y-this.height/2,this.width,this.height);
-			drawReck(this.x-this.width/2,this.y-this.height/2,this.width,this.height);
+			self.ctx.drawImage(this.imgObj,this.px,this.py,this.pwidth,this.pheight,this.x-this.width/2,this.y-this.height/2,this.width,this.height);
+//			drawReck(this.x-this.width/2,this.y-this.height/2,this.width,this.height,"rgb(255,255,255)");
 		}
 		//每次动画重绘进行的方法
-		this.onUpdata = function(){}
+		this.onUpdata = Pro.onUpdata || function(){}
 		//默认精灵活动
 		this.action = function(){
 			this.onUpdata();
@@ -192,7 +184,11 @@ function GRabbit(){
 	this.MainTime = function(){
 		//帧运行
 		function draw(){
+			self.$roll++;
+			if(self.$roll>100){self.$roll = 1;}
 			//清除画布
+//			ctx.fillStyle = "rgb(255,255,255)";
+//			ctx.fillRect(0,0,self.canvas.width,self.canvas.height);
 			self.ctx.clearRect(0,0,self.canvas.width,self.canvas.height)
 			//运行所有精灵族中的精灵行为
 			self.spititList.forEach(function(val){
@@ -209,5 +205,101 @@ function GRabbit(){
 			draw();	
 		}
 	}
+	//街机碰撞
+	var ArcadeCrashObject = function(){
+		//创建街机舞台
+		this.stage = [];
+		//碰撞对象集
+		this.crachArr = [];
+		//添加碰撞对象
+		this.addCrash = function(imgSpitit,name){//需要添加一个图片精灵的实例
+			//创建一个临时的canvas，用来存放一个游戏对象的画面
+			var arcadeCanvas = document.createElement("canvas");
+			var arcadeCtx = arcadeCanvas.getContext("2d");
+			arcadeCanvas.width = imgSpitit.width;
+			arcadeCanvas.height = imgSpitit.height;
+			arcadeCtx.drawImage(imgSpitit.imgObj,imgSpitit.px,imgSpitit.py,imgSpitit.pwidth,imgSpitit.pheight,0,0,imgSpitit.width,imgSpitit.height);
+			//提取游戏对象中，透明处和不透明处，用来进行碰撞测试
+			var stageObjData = arcadeCtx.getImageData(0,0,imgSpitit.width,imgSpitit.height).data;
+			var stageObj = {
+				index:this.crachArr.length,
+				name:name,
+				"imgSpitit":imgSpitit,
+				plane:[]
+			};
+			//判断每个像素点，当像素点为不透明的时候，此处有碰撞体，当像素点透明度小于250时，为不碰撞体
+			for(var i = 0; i < imgSpitit.width * imgSpitit.height; i ++){
+			    var dot = i * 4;
+			    if(stageObjData[dot+3] > 250){
+			        stageObj.plane[i] = 1;
+			    }else{
+			        stageObj.plane[i] = 0;
+			    }
+			}
+			this.crachArr.push(stageObj);
+		}
+		//初始化街机舞台
+		this.init = function(){
+			var i = 0;
+			var n = self.canvas.width * self.canvas.height;
+			for(i = 0; i < n; i ++){
+	            this.stage[i] = 0;
+	        }
+		}
+		this.canvas2 = document.getElementById("canvas2");
+		this.stt = this.canvas2.getContext("2d");
+		this.imgData=this.stt.getImageData(0,0,self.canvas.width,self.canvas.height);
+		
+		//往街机舞台中进行绘制所有对象
+		this.action = function(){
+			var that = this;
+			this.crachArr.forEach(function(val){
+				var i = 0,
+			        j = 0,
+			        k = 0,
+			        l = 0,
+			        m = 0,
+			        n = 0;
+			    for(j = 0 ;j<val.imgSpitit.height;j++){
+			    	for(i=0;i<val.imgSpitit.width;i++){
+			    		n = (val.imgSpitit.y-val.imgSpitit.height/2)+j*self.canvas.width+(val.imgSpitit.x-val.imgSpitit.width/2)
+			    		if(val.plane[j*val.imgSpitit.width+i]==1){
+			    			that.stage[n] = 1;
+			    			that.imgData.data[n]=255;
+			                that.imgData.data[n+1]=255;
+			                that.imgData.data[n+2]=255;
+			                that.imgData.data[n+3]=255;
+			    		}
+			    	}
+			    }
+			    that.stt.putImageData(that.imgData,0,0);
+//				for(i; i < val.imgSpitit.width; i ++){
+//			        for(j; j < val.imgSpitit.height; j ++){
+//			            m = parseInt(j * val.imgSpitit .width + i);
+////			            console.log(m);
+//			            if(val.plane[m] > 0){
+//			                n = parseInt((j + (val.imgSpitit.y - val.imgSpitit.height/2)) * self.canvas.width + (i + (val.imgSpitit.x - val.imgSpitit.width/2)));
+////			                console.log(n);
+//			              
+//			            }
+//			        }
+//			    }
+//				val.plane.forEach(function(val2,index){
+//					if(val2 == 1){
+//		                that.imgData.data[index]=255;
+//		                that.imgData.data[index+1]=255;
+//		                that.imgData.data[index+2]=255;
+//		                that.imgData.data[index+3]=255;
+//					}
+//				});
+//				that.stt.putImageData(that.imgData,0,0);
+			});
+		}
+		//启动街机舞台
+		this.start = function(){
+			self.spititList.push(self.ArcadeCrash);
+		}
+	}
+	this.ArcadeCrash = new ArcadeCrashObject();
 }
 var GRbit = new GRabbit();

@@ -82,6 +82,7 @@
 	</style>
 	<body>
 		<img src="coverage.png" style="display: none" id="coverage"/>
+		<canvas id="canvas2" width="400" height="700"></canvas>
 	</body>
 	<script src="Rabbit.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
@@ -95,8 +96,8 @@
 		var stage = new GRbit.Stage({
 			width:config.canvasWidth,
 			height:config.canvasHeight,
-			scaleX:document.body.offsetWidth/config.canvasWidth,
-			scaleY:document.body.offsetHeight/config.canvasHeight,
+//			scaleX:document.body.offsetWidth/config.canvasWidth,
+//			scaleY:document.body.offsetHeight/config.canvasHeight,
 		});
 		//注册一个组件自定义的事件，拖动事件
 		onDrag = function(spitit){
@@ -107,33 +108,6 @@
 				spitit.$NY = e.touches[0].pageY - spitit.y;
 			});
 			self.addEventListener("touchmove",function(e){
-				var sp = e.touches[0].pageX-spitit.$NX;
-				//改变水平仪
-				if(sp<spitit.x&&aircraft.Z<=0){
-					//左移动
-					aircraft.Z--;
-				}else if(sp>spitit.x&&aircraft.Z>=0){
-					//右移动
-					aircraft.Z++;
-				}else{
-					//不移动
-					aircraft.Z = 0;
-					aircraft.px = 0;
-				}
-				//用来控制飞机移动时，改变飞机倾斜度
-				if(aircraft.Z < -15){
-					if(aircraft.Z < -20){
-						aircraft.px = 388;
-					}else{
-						aircraft.px = 96;
-					}
-				}else if(aircraft.Z > 15){
-					if(aircraft.Z > 20){
-						aircraft.px = 292;
-					}else{
-						aircraft.px = 198;
-					}
-				}
 				spitit.x = e.touches[0].pageX - spitit.$NX;
 				spitit.y = e.touches[0].pageY - spitit.$NY;
 			});
@@ -153,55 +127,7 @@
 			//子弹类型
 			this.shellType = 1;
 		}
-		//通用子弹类
-		var Shell = function(Pro){
-			GRbit.ImgSpitit.call(this,Pro);
-			//子弹攻击力
-			this.ATK = Pro.ATK;
-			//子弹代号
-			this.code = Pro.code;
-			//子弹轨迹
-			this.track = Pro.track;
-			//子弹目标
-			this.target = Pro.target;
-		}
-		//1号子弹类工厂
-		var Shell_1 = function(x,y){
-			var Pro = new Object;
-			//重写部分属性
-			//生成坐标
-			Pro.x = x;
-			Pro.y = y;
-			//生成大小
-			Pro.width = 27;
-			Pro.height = 40;
-			//加载图片
-			Pro.imgObj = coverageImage;
-			Pro.px = 0;
-			Pro.py = 64;
-			Pro.pwidth = 40;
-			Pro.pheight = 56;
-			//子弹攻击力
-			Pro.ATK = 1;
-			//子弹代号
-			Pro.code = 1;
-			//子弹轨迹
-			Pro.track = function(){
-				this.y -= 13;
-			};
-			//子弹目标
-			Pro.target = null;
-			Pro.onUpdata = function(){
-				this.track();
-				//销毁子弹
-				if(this.y+this.height/2<0){
-					this.remove();
-				}
-			}
-			return (new Shell(Pro));
-		}
-		
-		//创建一个我方飞机
+		//创建一个我方飞机实例
 		var aircraft = new Aircraft({
 			x:200,
 			y:100,
@@ -228,14 +154,13 @@
 				if(this.y+this.height/2>=stage.height){
 					this.y = stage.height-this.height/2;
 				}
-				//发射子弹
-				if(GRbit.$roll%5==0&&GRbit.$roll%20!=0){
-					GRbit.spititList.push(Shell_1(this.x,this.y-this.height/2));
-				}
 			}
 		})
 		onDrag(aircraft);
 		GRbit.spititList.push(aircraft);
+		//创建一个街机碰撞
+		GRbit.ArcadeCrash.addCrash(aircraft);
+		GRbit.ArcadeCrash.start();
 		//初始化主时间轴
 		var mainTime = new GRbit.MainTime();
 		mainTime.start();
