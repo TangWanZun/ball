@@ -85,6 +85,8 @@ function GRabbit(){
 	}
 	//精灵族
 	this.spititList = new List();
+	//单独的碰撞渲染
+	this.spititList = new List();
 	//手势开始点击
 	this.touchstartList = new List();
 	//手势滑动
@@ -112,7 +114,7 @@ function GRabbit(){
 		});
 		event.preventDefault();  
 	}
-	self.canvas,ontouchend = function(e){
+	self.canvas.ontouchend = function(e){
 		self.touchendList.forEach(function(val){
 			val.eventShow(e);
 		});
@@ -170,7 +172,7 @@ function GRabbit(){
 		//绘制精灵
 		this.init = function(){
 			self.ctx.drawImage(this.imgObj,this.px,this.py,this.pwidth,this.pheight,this.x-this.width/2,this.y-this.height/2,this.width,this.height);
-//			drawReck(this.x-this.width/2,this.y-this.height/2,this.width,this.height,"rgb(255,255,255)");
+			//drawReck(this.x-this.width/2,this.y-this.height/2,this.width,this.height,"rgb(255,255,255)");
 		}
 		//每次动画重绘进行的方法
 		this.onUpdata = Pro.onUpdata || function(){}
@@ -189,7 +191,7 @@ function GRabbit(){
 			//清除画布
 //			ctx.fillStyle = "rgb(255,255,255)";
 //			ctx.fillRect(0,0,self.canvas.width,self.canvas.height);
-			self.ctx.clearRect(0,0,self.canvas.width,self.canvas.height)
+			self.ctx.clearRect(0,0,self.canvas.width,self.canvas.height);
 			//运行所有精灵族中的精灵行为
 			self.spititList.forEach(function(val){
 				val.action();
@@ -212,7 +214,7 @@ function GRabbit(){
 		//碰撞对象集
 		this.crachArr = [];
 		//添加碰撞对象
-		this.addCrash = function(imgSpitit,name){//需要添加一个图片精灵的实例
+		this.addCrash = function(imgSpitit,name,him){//需要添加一个图片精灵的实例
 			//创建一个临时的canvas，用来存放一个游戏对象的画面
 			var arcadeCanvas = document.createElement("canvas");
 			var arcadeCtx = arcadeCanvas.getContext("2d");
@@ -225,7 +227,8 @@ function GRabbit(){
 				index:this.crachArr.length,
 				name:name,
 				"imgSpitit":imgSpitit,
-				plane:[]
+				plane:[],
+				"him":him
 			};
 			//判断每个像素点，当像素点为不透明的时候，此处有碰撞体，当像素点透明度小于250时，为不碰撞体
 			for(var i = 0; i < imgSpitit.width * imgSpitit.height; i ++){
@@ -256,16 +259,28 @@ function GRabbit(){
 			//将所有成员的像素，写入数组中
 			this.crachArr.forEach(function(val){
 				var i = 0,
-			        j = 0,
-			        k = 0,
-			        l = 0,
-			        m = 0,
-			        n = 0;
+			        j = 0;
+			        y = parseInt(val.imgSpitit.y);
+			        x = parseInt(val.imgSpitit.x);
 			    for(j = 0 ;j<val.imgSpitit.height;j++){
 			    	for(i=0;i<val.imgSpitit.width;i++){
+			    		n = (j+y-val.imgSpitit.height/2)*self.canvas.width+(i+x-val.imgSpitit.width/2);
 			    		//像素表中的位置是不是为1
 			    		if(val.plane[j*val.imgSpitit.width+i]==1){
-			    			that.stage[(j+val.imgSpitit.y-val.imgSpitit.height/2)*self.canvas.width+(i+val.imgSpitit.x-val.imgSpitit.width/2)] = 1;
+			    			switch(that.stage[n]){
+			    				case 0:{
+			    					that.stage[n] = val.name;
+			    					break;
+			    				}
+			    				default:{
+//			    					for(var x in val.him){
+//			    						if(x==that.stage[n]){
+			    							that.stage[n]=1;
+//			    						}
+//			    					}
+			    					break;
+			    				}
+			    			}
 			    		}
 			    	}
 			    }
@@ -274,15 +289,21 @@ function GRabbit(){
 			var i = 0,
 		        j = 0;
 		    for(i = 0,j = 0;i<self.canvas.width * self.canvas.height;i++,j+=4){
-		    	switch( this.stage[i]){
-		            case 1:
-		                this.imgData_data.data[j] = 255;
+		    	switch(this.stage[i]){
+		    		case 0:
+		                this.imgData_data.data[j] = 0;
 		                this.imgData_data.data[j + 1] = 0;
 		                this.imgData_data.data[j + 2] = 0;
 		                this.imgData_data.data[j + 3] = 255;
 		                break;
-		            default:
+		            case 1:
 		                this.imgData_data.data[j] = 0;
+		                this.imgData_data.data[j + 1] = 0;
+		                this.imgData_data.data[j + 2] = 255;
+		                this.imgData_data.data[j + 3] = 255;
+		                break;
+		            default:
+		                this.imgData_data.data[j] = 255;
 		                this.imgData_data.data[j + 1] = 0;
 		                this.imgData_data.data[j + 2] = 0;
 		                this.imgData_data.data[j + 3] = 255;
