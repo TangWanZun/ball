@@ -82,7 +82,7 @@
 	</style>
 	<body>
 		<img src="coverage.png" style="display: none" id="coverage"/>
-		<canvas id="canvas2" width="400" height="700"></canvas>
+		<!--<canvas id="canvas2" width="400" height="700"></canvas>-->
 	</body>
 	<script src="Rabbit.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
@@ -191,12 +191,14 @@
 		GRbit.ArcadeCrash.addCrash(aircraft3,"zj3");
 		GRbit.ArcadeCrash.addCrash(aircraft,"zj",{
 			"zj2":function(){
-				return 1
+				return 1;
 			},
 			"zj3":function(){
-				return 1
+				return 1;
 			}
 		});
+		//启动碰撞映射
+		GRbit.ArcadeCrash.crachMapStart()
 		GRbit.ArcadeCrash.start();
 		//初始化主时间轴
 		var mainTime = new GRbit.MainTime();

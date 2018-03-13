@@ -249,9 +249,46 @@ function GRabbit(){
 	            this.stage[i] = 0;
 	        }
 		}
-		this.canvas2 = document.getElementById("canvas2");
-		this.stt = this.canvas2.getContext("2d");
-		this.imgData_data = this.stt.getImageData(0,0,400,700);
+		//钩子
+		this.hook = function(){};
+		//碰撞映射
+		this.crachMap = function(){
+			var i = 0,
+		        j = 0;
+		    for(i = 0,j = 0;i<self.canvas.width * self.canvas.height;i++,j+=4){
+		    	switch(this.stage[i]){
+		    		case 0:
+		                this.imgData_data.data[j] = 0;
+		                this.imgData_data.data[j + 1] = 0;
+		                this.imgData_data.data[j + 2] = 0;
+		                this.imgData_data.data[j + 3] = 255;
+		                break;
+		            case 1:
+		                this.imgData_data.data[j] = 0;
+		                this.imgData_data.data[j + 1] = 0;
+		                this.imgData_data.data[j + 2] = 255;
+		                this.imgData_data.data[j + 3] = 255;
+		                break;
+		            default:
+		                this.imgData_data.data[j] = 255;
+		                this.imgData_data.data[j + 1] = 0;
+		                this.imgData_data.data[j + 2] = 0;
+		                this.imgData_data.data[j + 3] = 255;
+		                break;
+	        	}
+		    }
+			this.stt.putImageData(this.imgData_data,0,0);
+		}
+		//启动碰撞映射
+		this.crachMapStart = function(){
+			this.canvasMap = document.createElement("canvas");
+			this.canvasMap.width = self.canvas.width;
+			this.canvasMap.height = self.canvas.height;
+			document.body.appendChild(this.canvasMap);
+			this.stt = this.canvasMap.getContext("2d");
+			this.imgData_data = this.stt.getImageData(0,0,400,700);
+			this.hook = this.crachMap;
+		}
 		//往街机舞台中进行绘制所有对象
 		this.action = function(){
 			var that = this;
@@ -284,33 +321,9 @@ function GRabbit(){
 			    		}
 			    	}
 			    }
+			    that.hook();
 			});
-			var imgData_data = this.stt.createImageData(self.canvas.width,self.canvas.height);
-			var i = 0,
-		        j = 0;
-		    for(i = 0,j = 0;i<self.canvas.width * self.canvas.height;i++,j+=4){
-		    	switch(this.stage[i]){
-		    		case 0:
-		                this.imgData_data.data[j] = 0;
-		                this.imgData_data.data[j + 1] = 0;
-		                this.imgData_data.data[j + 2] = 0;
-		                this.imgData_data.data[j + 3] = 255;
-		                break;
-		            case 1:
-		                this.imgData_data.data[j] = 0;
-		                this.imgData_data.data[j + 1] = 0;
-		                this.imgData_data.data[j + 2] = 255;
-		                this.imgData_data.data[j + 3] = 255;
-		                break;
-		            default:
-		                this.imgData_data.data[j] = 255;
-		                this.imgData_data.data[j + 1] = 0;
-		                this.imgData_data.data[j + 2] = 0;
-		                this.imgData_data.data[j + 3] = 255;
-		                break;
-	        	}
-		    }
-			this.stt.putImageData(this.imgData_data,0,0);
+			
 		}
 		//启动街机舞台
 		this.start = function(){
