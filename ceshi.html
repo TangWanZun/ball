@@ -144,6 +144,8 @@
 				spitit.$NY = 0;
 				aircraft.Z = 0;
 				aircraft.px = 0;
+				//重绘碰撞体
+				GRbit.ArcadeCrash.resetDraw(aircraft);
 			});
 		}
 		//主角飞机类
@@ -155,6 +157,7 @@
 			//子弹类型
 			this.shellType = 1;
 		}
+		
 		//通用子弹类
 		var Shell = function(Pro){
 			GRbit.ImgSpitit.call(this,Pro);
@@ -191,6 +194,8 @@
 			Pro.track = function(){
 				this.y -= 13;
 			};
+			//子弹是否已经触发碰撞
+			Pro.isint = false;
 			//子弹目标
 			Pro.target = null;
 			Pro.onUpdata = function(){
@@ -202,21 +207,25 @@
 			}
 			return (new Shell(Pro));
 		}
-		//创建靶机
-		var aircraft3 = new Aircraft({
+		//创建敌机
+		var enemy = new Aircraft({
 			x:100,
-			y:200,
+			y:100,
 			Z:0,
+			HP:10,
 			imgObj:coverageImage,
-			width:70,
-			height:44,
-			px:96,
-			py:0,
-			pwidth:96,
-			pheight:64,
+			width:50,
+			height:50,
+			px:41,
+			py:64,
+			pwidth:60,
+			pheight:60,
+			onUpdata:function(){
+				if(this.HP<0){
+					this.remove();
+				}
+			}
 		})
-		GRbit.spititList.push(aircraft3);
-		GRbit.ArcadeCrash.addCrash(aircraft3,"zj3");
 		//创建一个我方飞机
 		var aircraft = new Aircraft({
 			x:200,
@@ -247,11 +256,14 @@
 				//发射子弹
 				if(GRbit.$roll%5==0&&GRbit.$roll%20!=0){
 					let shell = Shell_1(this.x,this.y-this.height/2);
-//					console.log(shell);
 					GRbit.spititList.push(shell);
 					GRbit.ArcadeCrash.addCrash(shell,"zd",{
-						"zj3":function(){
-							return 1;
+						"zj3":function(obj,obj2){
+							if(!obj.isint){
+								obj2.HP--;
+								obj.isint = true;
+								obj.remove();
+							}
 						}
 					});
 				}
@@ -259,9 +271,16 @@
 		})
 		onDrag(aircraft);
 		GRbit.spititList.push(aircraft);
-
 		//创建一个街机碰撞
 		GRbit.ArcadeCrash.addCrash(aircraft,"zj");
+		
+		GRbit.spititList.push(enemy);
+		GRbit.ArcadeCrash.addCrash(enemy,"zj3",{
+			"zj":function(){
+				return 1;
+			}
+		});
+		
 		//启动碰撞映射
 		GRbit.ArcadeCrash.crachMapStart()
 		//启动街机碰撞

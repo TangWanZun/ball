@@ -331,13 +331,16 @@ function GRabbit(){
 		    			switch(that.stage[n]){
 		    				//当大地图数据为0的时候，可以进行放置
 		    				case 0:{
-		    					that.stage[n] = imgSpitit.$name;
+		    					that.stage[n] = [imgSpitit.$name,imgSpitit];
 		    					break;
 		    				}
 		    				//为非0的时候，此处有像素点被占用
 		    				default:{
-		    					if(typeof imgSpitit.$him[that.stage[n]]=="function"){
-		    						that.stage[n]=imgSpitit.$him[that.stage[n]]();
+//		    					console.log(that.stage[n][0]);
+		    					if(that.stage[n]){
+		    						if(typeof imgSpitit.$him[that.stage[n][0]]=="function"){
+		    							that.stage[n]=imgSpitit.$him[that.stage[n][0]](imgSpitit,that.stage[n][1]);
+		    						}
 		    					}
 		    					break;
 		    				}
