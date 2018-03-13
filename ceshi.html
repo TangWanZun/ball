@@ -134,6 +134,8 @@
 						aircraft.px = 198;
 					}
 				}
+				//重绘碰撞体
+				GRbit.ArcadeCrash.resetDraw(aircraft);
 				spitit.x = e.touches[0].pageX - spitit.$NX;
 				spitit.y = e.touches[0].pageY - spitit.$NY;
 			});

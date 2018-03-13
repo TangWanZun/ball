@@ -247,6 +247,26 @@ function GRabbit(){
 			    }
 			}
 		}
+		//重绘对象
+		this.resetDraw = function(imgSpitit){
+			var arcadeCanvas = document.createElement("canvas");
+			var arcadeCtx = arcadeCanvas.getContext("2d");
+			arcadeCanvas.width = imgSpitit.width;
+			arcadeCanvas.height = imgSpitit.height;
+			arcadeCtx.drawImage(imgSpitit.imgObj,imgSpitit.px,imgSpitit.py,imgSpitit.pwidth,imgSpitit.pheight,0,0,imgSpitit.width,imgSpitit.height);
+			//提取游戏对象中，透明处和不透明处，用来进行碰撞测试
+			var stageObjData = arcadeCtx.getImageData(0,0,imgSpitit.width,imgSpitit.height).data;
+			imgSpitit.$plane = [];
+			//判断每个像素点，当像素点为不透明的时候，此处有碰撞体，当像素点透明度小于250时，为不碰撞体
+			for(var i = 0; i < imgSpitit.width * imgSpitit.height; i ++){
+			    var dot = i * 4;
+			    if(stageObjData[dot] > 0||stageObjData[dot+1] > 0||stageObjData[dot+2] > 0){
+			        imgSpitit.$plane[i] = 1;
+			    }else{
+			        imgSpitit.$plane[i] = 0;
+			    }
+			}
+		}
 		//初始化街机舞台
 		this.init = function(){
 			var i = 0;
