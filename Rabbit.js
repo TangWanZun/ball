@@ -86,7 +86,7 @@ function GRabbit(){
 	//精灵族
 	this.spititList = new List();
 	//单独的碰撞渲染
-	this.spititList = new List();
+	this.crashList = new List();
 	//手势开始点击
 	this.touchstartList = new List();
 	//手势滑动
@@ -192,9 +192,22 @@ function GRabbit(){
 //			ctx.fillStyle = "rgb(255,255,255)";
 //			ctx.fillRect(0,0,self.canvas.width,self.canvas.height);
 			self.ctx.clearRect(0,0,self.canvas.width,self.canvas.height);
+			//单独碰撞初始化
+			self.crashList.forEach(function(val){
+				val.init();
+			});
 			//运行所有精灵族中的精灵行为
 			self.spititList.forEach(function(val){
 				val.action();
+				
+				//单独碰撞渲染
+				self.crashList.forEach(function(crash){
+					crash.action(val);
+				});
+			});
+			//单独碰撞结束函数
+			self.crashList.forEach(function(val){
+				val.end();
 			});
 			self.raf=window.requestAnimationFrame(draw);
 		}
@@ -211,8 +224,6 @@ function GRabbit(){
 	var ArcadeCrashObject = function(){
 		//创建街机舞台
 		this.stage = [];
-		//碰撞对象集
-		this.crachArr = [];
 		//添加碰撞对象
 		this.addCrash = function(imgSpitit,name,him){//需要添加一个图片精灵的实例
 			//创建一个临时的canvas，用来存放一个游戏对象的画面
@@ -223,23 +234,18 @@ function GRabbit(){
 			arcadeCtx.drawImage(imgSpitit.imgObj,imgSpitit.px,imgSpitit.py,imgSpitit.pwidth,imgSpitit.pheight,0,0,imgSpitit.width,imgSpitit.height);
 			//提取游戏对象中，透明处和不透明处，用来进行碰撞测试
 			var stageObjData = arcadeCtx.getImageData(0,0,imgSpitit.width,imgSpitit.height).data;
-			var stageObj = {
-				index:this.crachArr.length,
-				name:name,
-				"imgSpitit":imgSpitit,
-				plane:[],
-				"him":him
-			};
+			imgSpitit.$name = name;
+			imgSpitit.$plane = [];
+			imgSpitit.$him = him || {};
 			//判断每个像素点，当像素点为不透明的时候，此处有碰撞体，当像素点透明度小于250时，为不碰撞体
 			for(var i = 0; i < imgSpitit.width * imgSpitit.height; i ++){
 			    var dot = i * 4;
 			    if(stageObjData[dot] > 0||stageObjData[dot+1] > 0||stageObjData[dot+2] > 0){
-			        stageObj.plane[i] = 1;
+			        imgSpitit.$plane[i] = 1;
 			    }else{
-			        stageObj.plane[i] = 0;
+			        imgSpitit.$plane[i] = 0;
 			    }
 			}
-			this.crachArr.push(stageObj);
 		}
 		//初始化街机舞台
 		this.init = function(){
@@ -290,44 +296,43 @@ function GRabbit(){
 			this.hook = this.crachMap;
 		}
 		//往街机舞台中进行绘制所有对象
-		this.action = function(){
+		this.action = function(imgSpitit){
 			var that = this;
-			this.init();
 			//将所有成员的像素，写入数组中
-			this.crachArr.forEach(function(val){
-				var i = 0,
-			        j = 0;
-			        y = parseInt(val.imgSpitit.y);
-			        x = parseInt(val.imgSpitit.x);
-			    for(j = 0 ;j<val.imgSpitit.height;j++){
-			    	for(i=0;i<val.imgSpitit.width;i++){
-			    		n = (j+y-val.imgSpitit.height/2)*self.canvas.width+(i+x-val.imgSpitit.width/2);
-			    		//像素表中的位置是不是为1
-			    		if(val.plane[j*val.imgSpitit.width+i]==1){
-			    			switch(that.stage[n]){
-			    				//当大地图数据为0的时候，可以进行放置
-			    				case 0:{
-			    					that.stage[n] = val.name;
-			    					break;
-			    				}
-			    				//为非0的时候，此处有像素点被占用
-			    				default:{
-			    					if(typeof val.him[that.stage[n]]=="function"){
-			    						that.stage[n]=val.him[that.stage[n]]();
-			    					}
-			    					break;
-			    				}
-			    			}
-			    		}
-			    	}
-			    }
-			    that.hook();
-			});
-			
+			var i = 0,
+		        j = 0;
+		        y = parseInt(imgSpitit.y);
+		        x = parseInt(imgSpitit.x);
+		    for(j = 0 ;j<imgSpitit.height;j++){
+		    	for(i=0;i<imgSpitit.width;i++){
+		    		n = parseInt((j+y-imgSpitit.height/2)*self.canvas.width+(i+x-imgSpitit.width/2));
+		    		//像素表中的位置是不是为1
+		    		if(imgSpitit.$plane[j*imgSpitit.width+i]==1){
+		    			switch(that.stage[n]){
+		    				//当大地图数据为0的时候，可以进行放置
+		    				case 0:{
+		    					that.stage[n] = imgSpitit.$name;
+		    					break;
+		    				}
+		    				//为非0的时候，此处有像素点被占用
+		    				default:{
+		    					if(typeof imgSpitit.$him[that.stage[n]]=="function"){
+		    						that.stage[n]=imgSpitit.$him[that.stage[n]]();
+		    					}
+		    					break;
+		    				}
+		    			}
+		    		}
+		    	}
+		    }
 		}
 		//启动街机舞台
 		this.start = function(){
-			self.spititList.push(self.ArcadeCrash);
+			self.crashList.push(self.ArcadeCrash);
+		}
+		//结束街机舞台时进行重绘
+		this.end = function(){
+			this.hook();
 		}
 	}
 	this.ArcadeCrash = new ArcadeCrashObject();

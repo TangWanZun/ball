@@ -95,8 +95,8 @@
 		var stage = new GRbit.Stage({
 			width:config.canvasWidth,
 			height:config.canvasHeight,
-			scaleX:document.body.offsetWidth/config.canvasWidth,
-			scaleY:document.body.offsetHeight/config.canvasHeight,
+//			scaleX:document.body.offsetWidth/config.canvasWidth,
+//			scaleY:document.body.offsetHeight/config.canvasHeight,
 		});
 		//注册一个组件自定义的事件，拖动事件
 		onDrag = function(spitit){
@@ -200,7 +200,21 @@
 			}
 			return (new Shell(Pro));
 		}
-		
+		//创建靶机
+		var aircraft3 = new Aircraft({
+			x:100,
+			y:200,
+			Z:0,
+			imgObj:coverageImage,
+			width:70,
+			height:44,
+			px:96,
+			py:0,
+			pwidth:96,
+			pheight:64,
+		})
+		GRbit.spititList.push(aircraft3);
+		GRbit.ArcadeCrash.addCrash(aircraft3,"zj3");
 		//创建一个我方飞机
 		var aircraft = new Aircraft({
 			x:200,
@@ -230,12 +244,27 @@
 				}
 				//发射子弹
 				if(GRbit.$roll%5==0&&GRbit.$roll%20!=0){
-					GRbit.spititList.push(Shell_1(this.x,this.y-this.height/2));
+					let shell = Shell_1(this.x,this.y-this.height/2);
+//					console.log(shell);
+					GRbit.spititList.push(shell);
+					GRbit.ArcadeCrash.addCrash(shell,"zd",{
+						"zj3":function(){
+							return 1;
+						}
+					});
 				}
 			}
 		})
 		onDrag(aircraft);
 		GRbit.spititList.push(aircraft);
+
+		//创建一个街机碰撞
+		GRbit.ArcadeCrash.addCrash(aircraft,"zj");
+		//启动碰撞映射
+		GRbit.ArcadeCrash.crachMapStart()
+		//启动街机碰撞
+		GRbit.ArcadeCrash.start();
+		
 		//初始化主时间轴
 		var mainTime = new GRbit.MainTime();
 		mainTime.start();
