@@ -268,16 +268,16 @@ function GRabbit(){
 			    		//像素表中的位置是不是为1
 			    		if(val.plane[j*val.imgSpitit.width+i]==1){
 			    			switch(that.stage[n]){
+			    				//当大地图数据为0的时候，可以进行放置
 			    				case 0:{
 			    					that.stage[n] = val.name;
 			    					break;
 			    				}
+			    				//为非0的时候，此处有像素点被占用
 			    				default:{
-//			    					for(var x in val.him){
-//			    						if(x==that.stage[n]){
-			    							that.stage[n]=1;
-//			    						}
-//			    					}
+			    					if(typeof val.him[that.stage[n]]=="function"){
+			    						that.stage[n]=val.him[that.stage[n]]();
+			    					}
 			    					break;
 			    				}
 			    			}
@@ -285,7 +285,7 @@ function GRabbit(){
 			    	}
 			    }
 			});
-//			var imgData_data = this.stt.createImageData(self.canvas.width,self.canvas.height);
+			var imgData_data = this.stt.createImageData(self.canvas.width,self.canvas.height);
 			var i = 0,
 		        j = 0;
 		    for(i = 0,j = 0;i<self.canvas.width * self.canvas.height;i++,j+=4){
